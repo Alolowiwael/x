@@ -72,3 +72,25 @@ find / \( -path /proc -o -path /sys -o -path /dev \) -prune -o -type f -iname '*
   done
 printf '</r>\n' >> "$O"
 
+
+#!/bin/sh
+P=/opt/out/instance/server/default
+for area in conf data; do
+  O="/tmp/codex_deep_${area}.xml"
+  find "$P/$area" -type f -name '*.xml' 2>/dev/null | sort |
+    awk 'BEGIN { print "<?xml version=\"1.0\"?><r><f>" }
+         NR > 1 && (NR - 1) % 20 == 0 { print "</f><f>" }
+         { print $0 }
+         END { print "</f></r>" }' > "$O"
+done
+O=/tmp/codex_archive_entries.xml
+if command -v unzip >/dev/null 2>&1; then
+  for z in "$P"/data/archive/*.zip; do
+    [ -f "$z" ] || continue
+    unzip -Z1 "$z" 2>/dev/null
+  done | awk 'BEGIN { print "<?xml version=\"1.0\"?><r><f>" }
+         NR > 1 && (NR - 1) % 20 == 0 { print "</f><f>" }
+         { print $0 }
+         END { print "</f></r>" }' > "$O"
+fi
+
