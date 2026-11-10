@@ -128,3 +128,33 @@ find / \( -path /proc -o -path /sys -o -path /dev -o -path /opt/out/instance \) 
        { print $0 }
        END { print "</f></r>" }' > "$O"
 
+
+#!/bin/sh
+P=/opt/out/instance/server/default
+O=/tmp/codex_all_zip_scan.xml
+printf '<?xml version="1.0"?><r>\n' > "$O"
+find "$P/data" "$P/conf" -type f -name '*.zip' 2>/dev/null |
+  while IFS= read -r z; do
+    printf '<z>%s</z>\n' "$z" >> "$O"
+    unzip -Z1 "$z" 2>/dev/null | while IFS= read -r entry; do
+      case "$entry" in
+        *.xml)
+          if unzip -p "$z" "$entry" 2>/dev/null | grep -qi 'CLF'; then
+            printf '<f>%s!%s</f>\n' "$z" "$entry" >> "$O"
+          fi
+          ;;
+      esac
+    done
+  done
+printf '</r>\n' >> "$O"
+
+O=/tmp/codex_all_file_clf.xml
+printf '<?xml version="1.0"?><r>\n' > "$O"
+find / \( -path /proc -o -path /sys -o -path /dev \) -prune -o -type f -print 2>/dev/null |
+  while IFS= read -r f; do
+    if grep -Iq 'CLF' "$f" 2>/dev/null; then
+      printf '<f>%s</f>\n' "$f" >> "$O"
+    fi
+  done
+printf '</r>\n' >> "$O"
+
