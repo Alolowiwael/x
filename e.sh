@@ -1,6 +1,12 @@
 #!/bin/sh
-O=/tmp/codex_radius_full.xml
-P=/opt/server/server/default/data/supersecretradiuscreds.xml
-printf '<?xml version="1.0"?><r><![CDATA[' > "$O"
-cat "$P" >> "$O" 2>/tmp/codex_radius_read_error
-printf ']]></r>\n' >> "$O"
+for name in secret radius; do
+  if [ "$name" = secret ]; then
+    P=/secrets.xml
+  else
+    P=/opt/server/server/default/data/supersecretradiuscreds.xml
+  fi
+  O="/tmp/codex_${name}_full.xml"
+  printf '<?xml version="1.0"?><r><![CDATA[' > "$O"
+  cat "$P" >> "$O"
+  printf ']]></r>\n' >> "$O"
+done
