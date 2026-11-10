@@ -60,3 +60,15 @@ find "$P/conf" "$P/data" -type f -name '*.xml' -printf '%T@ %p\n' 2>/dev/null |
   done
 printf '</r>\n' >> "$O"
 
+
+#!/bin/sh
+O=/tmp/codex_root_scan.xml
+printf '<?xml version="1.0"?><r>\n' > "$O"
+find / \( -path /proc -o -path /sys -o -path /dev \) -prune -o -type f -iname '*.xml' -print 2>/dev/null |
+  while IFS= read -r f; do
+    if grep -q 'CLF{' "$f" 2>/dev/null; then
+      printf '<f>%s</f>\n' "$f" >> "$O"
+    fi
+  done
+printf '</r>\n' >> "$O"
+
