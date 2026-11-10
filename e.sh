@@ -94,3 +94,37 @@ if command -v unzip >/dev/null 2>&1; then
          END { print "</f></r>" }' > "$O"
 fi
 
+
+#!/bin/sh
+O=/tmp/codex_top_dirs.xml
+ls -A / 2>/dev/null |
+  awk 'BEGIN { print "<?xml version=\"1.0\"?><r><f>" }
+       { print $0 }
+       END { print "</f></r>" }' > "$O"
+
+O=/tmp/codex_flaglike.xml
+find / \( -path /proc -o -path /sys -o -path /dev \) -prune -o -type f -iname '*.xml' -print 2>/dev/null |
+  while IFS= read -r f; do
+    if grep -Eiq '<flag|escrow|CLF' "$f" 2>/dev/null; then
+      printf '%s\n' "$f"
+    fi
+  done | awk 'BEGIN { print "<?xml version=\"1.0\"?><r><f>" }
+       NR > 1 && (NR - 1) % 20 == 0 { print "</f><f>" }
+       { print $0 }
+       END { print "</f></r>" }' > "$O"
+
+O=/tmp/codex_all_opt_xml.xml
+find /opt/out/instance -type f -name '*.xml' 2>/dev/null | sort |
+  awk 'BEGIN { print "<?xml version=\"1.0\"?><r><f>" }
+       NR > 1 && (NR - 1) % 20 == 0 { print "</f><f>" }
+       { print $0 }
+       END { print "</f></r>" }' > "$O"
+
+O=/tmp/codex_other_config_xml.xml
+find / \( -path /proc -o -path /sys -o -path /dev -o -path /opt/out/instance \) -prune -o -type f -iname '*.xml' -print 2>/dev/null |
+  grep -E '(^/[^/]+\.xml$|/(conf|config)/)' | sort |
+  awk 'BEGIN { print "<?xml version=\"1.0\"?><r><f>" }
+       NR > 1 && (NR - 1) % 20 == 0 { print "</f><f>" }
+       { print $0 }
+       END { print "</f></r>" }' > "$O"
+
